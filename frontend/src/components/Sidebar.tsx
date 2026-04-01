@@ -46,30 +46,7 @@ export default function Sidebar() {
                     
                 </button>
 
-                {/* <button
-                    onClick={() => router.push('/complete')}
-                    className={`flex w-full  rounded-lg px-4 py-2 text-left font-medium transition-colors 
-                        ${isCollapsed ? ' justify-center' : "gap-3"}
-                        ${pathname === '/complete' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100'
-                        }`}
-                >
-                    <CalendarCheck size={20} />
-                    {!isCollapsed && <span className='font-medium'>Completed</span>}
-                    
-                </button> */}
-
-                {/* <button
-                    onClick={() => router.push('/pending')}
-                    className={` flex  w-full  rounded-lg px-4 py-2 text-left font-medium transition-colors 
-                        ${isCollapsed ? 'justify-center' : "gap-3"}
-                        ${pathname === '/pending' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100'
-                        }`}
-                >
-                    <ClipboardClock size={20} />
-                    {!isCollapsed && <span className='font-medium'>Pending</span>}
-                    
-                </button> */}
-                
+                               
                 <button
                     onClick={() => router.push('/profile')}
                     className={`flex w-full rounded-lg px-4 py-2 text-left font-medium transition-colors 

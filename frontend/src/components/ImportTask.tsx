@@ -5,11 +5,9 @@ import { authFetch } from "@/lib/api/auth";
 import { useSession } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface ImportTaskProps {
-    onClose: () => void;
-}
 
-export default function ImportTask({ onClose }: ImportTaskProps) {
+
+export default function ImportTask({ onClose }: { onClose: () => void }) {
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const { data: session } = useSession();

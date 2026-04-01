@@ -73,8 +73,8 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
             startTime = !isNaN(dStart.getTime()) ? dStart.toISOString() : `${formDay}T00:00:00`;
             endTime = !isNaN(dEnd.getTime()) ? dEnd.toISOString() : `${formDay}T23:59:59`;
         } else {
-            const formStartTime = formData.get('start_time') as string || formatTimeForInput(task.start_time) || '00:00';
-            const formEndTime = formData.get('end_time') as string || formatTimeForInput(task.end_time) || '23:59';
+            const formStartTime = formData.get('start_time') as string || formatTimeForInput(task.start_time);
+            const formEndTime = formData.get('end_time') as string || formatTimeForInput(task.end_time);
             
             const timeStrStart = formStartTime.split(':').length === 2 ? `${formStartTime}:00` : formStartTime;
             const timeStrEnd = formEndTime.split(':').length === 2 ? `${formEndTime}:00` : formEndTime;

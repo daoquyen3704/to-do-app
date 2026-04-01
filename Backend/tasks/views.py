@@ -55,17 +55,17 @@ class TaskViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='import-tasks')
     def import_tasks(self, request):
         parser_classes = [MultiPartParser]
-        file_obj = request.FILES.get('file')
-        if not file_obj:
+        file = request.FILES.get('file')
+        if not file:
             return Response({"error":"Please select a file"}, status=400)
         
-        extension = file_obj.name.split('.')[-1].lower()
+        extension = file.name.split('.')[-1].lower()
         dataset = tablib.Dataset()
         if extension == 'csv':
-            file_data = file_obj.read().decode('utf-8-sig')
+            file_data = file.read().decode('utf-8-sig')
             dataset.load(file_data, format='csv')
         elif extension in ['xls', 'xlsx']:
-            file_data = file_obj.read()
+            file_data = file.read()
             dataset.load(file_data, format='xlsx')
         else:
             return Response({"error":"Data file contains errors."}, status=400)
@@ -86,6 +86,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     def get_queryset(self):
         return Category.objects.filter(user=self.request.user)
+    
     def perform_create(self, serializer):
         serializer.save(user = self.request.user)
 
