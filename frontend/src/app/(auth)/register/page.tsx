@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { registerApi } from '@/lib/api/auth';
+import { registerApi } from '@/services/auth';
+import { RegisterFormData } from '@/types/auth';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RegisterFormData>({
     username: '',
     email: '',
     password: '',
@@ -16,17 +17,20 @@ export default function RegisterPage() {
     first_name: '',
     last_name: '',
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       await registerApi(form);
-
       const result = await signIn('credentials', {
         username: form.username,
         password: form.password,
@@ -48,6 +52,7 @@ export default function RegisterPage() {
     }
   }
 
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
@@ -64,7 +69,8 @@ export default function RegisterPage() {
               <input
                 type="text"
                 value={form.last_name}
-                onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                onChange={handleChange}
+                name="last_name"
                 placeholder="Smith"
                 className="w-full text-black rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 transition"
               />
@@ -76,7 +82,8 @@ export default function RegisterPage() {
               <input
                 type="text"
                 value={form.first_name}
-                onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                onChange={handleChange}
+                name="first_name"
                 placeholder="John"
                 className="w-full text-black rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 transition"
               />
@@ -91,7 +98,8 @@ export default function RegisterPage() {
               type="text"
               required
               value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              onChange={handleChange}
+              name="username"
               placeholder="username"
               className="w-full text-black rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 transition"
             />
@@ -105,7 +113,8 @@ export default function RegisterPage() {
               type="email"
               required
               value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              onChange={handleChange}
+              name="email"
               placeholder="email@example.com"
               className="w-full text-black rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2  transition"
             />
@@ -119,7 +128,8 @@ export default function RegisterPage() {
               type="password"
               required
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={handleChange}
+              name="password"
               placeholder="••••••••"
               className="w-full text-black rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 transition"
             />
@@ -133,7 +143,8 @@ export default function RegisterPage() {
               type="password"
               required
               value={form.re_password}
-              onChange={(e) => setForm({ ...form, re_password: e.target.value })}
+              onChange={handleChange}
+              name="re_password"
               placeholder="••••••••"
               className="w-full text-black rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 transition"
             />

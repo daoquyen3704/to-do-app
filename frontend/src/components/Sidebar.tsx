@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 export default function Sidebar() {
     const router = useRouter();
-    const pathname = usePathname(); 
+     const pathname = usePathname(); 
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const toggleSidebar = () => setIsCollapsed(!isCollapsed);
@@ -15,7 +15,7 @@ export default function Sidebar() {
             ${isCollapsed ? 'w-20 p-3' : 'w-64 p-5'}
         `}>
             <button
-                onClick={toggleSidebar}
+                    onClick={toggleSidebar}
                 className='absolute -right-3 top-10 flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shadow-sm z-10'
             >
                 {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14}/>}

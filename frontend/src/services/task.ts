@@ -2,23 +2,6 @@ import { authFetch } from './auth';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 
-export type Task = {
-  id: number;
-  title: string;
-  description?: string;
-  date?: string; 
-  day?: string;  
-  time?: string;
-  start_time?: string;
-  end_time?: string;
-  is_all_day?: boolean;
-  completed?: boolean;
-  category?: string | null;
-  status?: string;
-  color?: string;
-  priority?: string;
-};
-
 export async function getTasks(accessToken: string) {
   const res = await authFetch('/tasks/', accessToken);
   if (!res.ok) {
@@ -35,17 +18,7 @@ export async function getTaskByDay(accessToken: string, day: string) {
   return res.json();
 }
 
-export function useTasks() {
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken as string | undefined;
 
-  return useQuery({
-    queryKey: ['tasks', accessToken],
-    queryFn: () => getTasks(accessToken!),
-    enabled: !!accessToken,
-  });
-  
-}
 
 export function useTaskDetail(day: string | number | undefined) {
   const { data: session } = useSession();
@@ -120,4 +93,37 @@ export async function deleteTask(id: number, accessToken: string){
     return null; 
   }
   return res.json();
+}
+
+export async function createTask(payload: any, accessToken: string) {
+  const res = await authFetch('/tasks/', accessToken, {
+      method: "POST",
+      body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+      const errorData = await res.json();
+      let errorMsg = 'An error occurred while adding task';
+      if (errorData.detail) errorMsg = errorData.detail;
+      else if (typeof errorData === 'object') errorMsg = Object.values(errorData).map((e: any) => Array.isArray(e) ? e.join(' ') : e).join(', ');
+      throw new Error(errorMsg);
+  }
+  return res.json();
+}
+
+export async function importTasks(formData: FormData, accessToken: string) {
+  const res = await authFetch('/tasks/import-tasks/', accessToken, {
+      method: "POST",
+      body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok) {
+      throw new Error(data.error || data.message || "An error occurred while importing");
+  }
+  return data;
+}
+
+export async function exportTasksTemplate(accessToken: string) {
+  const response = await authFetch("/tasks/export-tasks/", accessToken, { method: "GET" });
+  if (!response.ok) throw new Error('Download failed');
+  return response.blob();
 }

@@ -4,18 +4,23 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-
+import { LoginFormData } from '@/types/auth';
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = '/';
 
-  const [form, setForm] = useState({ username: '', password: '' });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState<LoginFormData>({ username: '', password: '' });
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -52,8 +57,9 @@ export default function LoginPage() {
             <input
               type="text"
               required
+              name='username'
               value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              onChange={handleChange}
               placeholder="username"
               className="w-full rounded-lg border text-black border-gray-200 px-4 py-2.5 text-sm outline-none focus:ring-2 transition"
             />
@@ -66,8 +72,9 @@ export default function LoginPage() {
             <input
               type="password"
               required
+              name='password'
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              onChange={handleChange}
               placeholder="••••••••"
               className="w-full rounded-lg border  px-4 py-2.5 border-gray-200 text-black outline-none focus:ring-2 transition"
             />

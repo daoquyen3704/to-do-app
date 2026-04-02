@@ -1,11 +1,6 @@
-import { authFetch } from "./auth";
+import { authFetch } from "@/services/auth";
 import { useQuery } from "@tanstack/react-query";
-export type UpdateProfilePayload = {
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  email?: string;
-};
+import { UpdateProfilePayload } from "@/types/auth";
 
 export async function UpdateProfile(payload: UpdateProfilePayload, token: string){
     const res = await authFetch('/auth/users/me/', token, {

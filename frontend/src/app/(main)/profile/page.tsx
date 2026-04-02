@@ -1,9 +1,10 @@
 'use client';
 import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UpdateProfile, UpdateProfilePayload, useMe } from "@/lib/api/user";
+import { UpdateProfile, useMe } from "@/services/user";
 import { useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { UpdateProfilePayload } from "@/types/auth";
+import { notify } from "@/utils/notify"; 
 
 export default function Profile() {
     const queryClient = useQueryClient();
@@ -12,19 +13,15 @@ export default function Profile() {
     
     const { data: user, isLoading: isUserLoading } = useMe(accessToken);
 
-    const handleNotify = (message: string, type: 'success' | 'error' = 'success') => {
-        toast[type](message);
-    };
-
     const { mutate, isPending } = useMutation({
         mutationFn: (data: UpdateProfilePayload) => UpdateProfile(data, accessToken),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['me'] });
-            handleNotify("Profile updated successfully", "success");
+            notify("Profile updated successfully", "success");
         }, 
         onError: (error: any) => {
             const msg = error.message || "Error updating profile";
-            handleNotify(msg, "error");
+            notify(msg, "error");
         }
     });
 

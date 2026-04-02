@@ -1,101 +1,28 @@
 'use client';
 import { useState, useEffect } from "react";
-import { Task, updateTask, deleteTask } from "@/lib/api/task";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { toast } from "sonner";
+import { Task } from "@/types/task";
+import { useTaskDetail } from "@/hooks/useTaskDetail";
+import { formatTimeForInput } from "@/utils/date";
 
 export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => void; }) {
-    const isAllDayValue = task.is_all_day === true || String(task.is_all_day).toLowerCase() === 'true';
+    const isAllDayValue = task.is_all_day === true;
     const [isAllDay, setIsAllDay] = useState(isAllDayValue);
 
     useEffect(() => {
-        setIsAllDay(task.is_all_day === true || String(task.is_all_day).toLowerCase() === 'true');
+        setIsAllDay(task.is_all_day === true);
     }, [task.is_all_day]);
-    const queryClient = useQueryClient();
-    const { data: session } = useSession();
-    const accessToken = session?.accessToken as string;
 
-    const updateTaskMutation = useMutation({
-        mutationFn: async (data: FormData) => {
-            return updateTask(task.id, data, accessToken);
-        },
-        onSuccess: (updatedTask) => {
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
-            queryClient.setQueryData(
-                ["tasks", "detail", String(updatedTask.id), accessToken],
-                updatedTask
-            );
-            toast.success("Task updated successfully");
-            onClose();
-        },
-        onError: () => {
-            toast.error("Failed to update task");
-        }
-    });
-
-    const deleteTaskMutation = useMutation({
-        mutationFn: async () => {
-            return deleteTask(task.id, accessToken);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
-            toast.success("Task deleted successfully");
-            onClose();
-        },
-        onError: () => {
-            toast.error("Failed to delete task");
-        }
-    });
-
-    const formatTimeForInput = (timeStr?: string) => {
-        if (!timeStr) return "";
-        if (/^\d{2}:\d{2}(:\d{2})?$/.test(timeStr)) return timeStr.substring(0, 5);
-        try {
-            const d = new Date(timeStr);
-            if (isNaN(d.getTime())) return timeStr;
-            return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-        } catch {
-            return timeStr;
-        }
-    };
+    const { updateTaskMutation, deleteTaskMutation } = useTaskDetail(task, onClose);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        
-        let startTime, endTime;
-        const formDay = formData.get('day') as string || task.day;
-        
-        if (isAllDay) {
-            const dStart = new Date(`${formDay}T00:00:00`);
-            const dEnd = new Date(`${formDay}T23:59:59`);
-            startTime = !isNaN(dStart.getTime()) ? dStart.toISOString() : `${formDay}T00:00:00`;
-            endTime = !isNaN(dEnd.getTime()) ? dEnd.toISOString() : `${formDay}T23:59:59`;
-        } else {
-            const formStartTime = formData.get('start_time') as string || formatTimeForInput(task.start_time);
-            const formEndTime = formData.get('end_time') as string || formatTimeForInput(task.end_time);
-            
-            const timeStrStart = formStartTime.split(':').length === 2 ? `${formStartTime}:00` : formStartTime;
-            const timeStrEnd = formEndTime.split(':').length === 2 ? `${formEndTime}:00` : formEndTime;
-            
-            const localStart = new Date(`${formDay}T${timeStrStart}`);
-            const localEnd = new Date(`${formDay}T${timeStrEnd}`);
-            
-            startTime = !isNaN(localStart.getTime()) ? localStart.toISOString() : `${formDay}T${timeStrStart}`;
-            endTime = !isNaN(localEnd.getTime()) ? localEnd.toISOString() : `${formDay}T${timeStrEnd}`;
-        }
-        
-        formData.set('start_time', startTime);
-        formData.set('end_time', endTime);
-        formData.set('is_all_day', String(isAllDay));
-
+        const formData = new FormData(e.currentTarget); 
         updateTaskMutation.mutate(formData);
     };
     return (
         <div className="relative w-full max-w-2xl rounded-2xl bg-white p-8 shadow-2xl">
             <h3 className="text-xl font-bold text-gray-900">Task Details</h3>
-            <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+            <form key={task.id} className="mt-6 space-y-4" onSubmit={handleSubmit}>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Title</label>
                     <input
@@ -122,11 +49,11 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                         id="is_all_day"
                         type="checkbox"
                         name="is_all_day"
-                        checked={isAllDay}
+                        checked= {isAllDay}
                         onChange={(e) => setIsAllDay(e.target.checked)}
                         className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                     />
-                    <label htmlFor="is_all_day" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                    <label htmlFor="is_all_day" className="text-sm font-medium text-gray-700 cursor-pointer">
                         This is an all-day event
                     </label>
                 </div>

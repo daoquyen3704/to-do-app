@@ -1,16 +1,11 @@
 'use client';
-import React, { useMemo, useState } from "react";
-import { weekDays, formatDateKey, isSameDate, getMonthDays } from "@/lib/utils/date";
-import type { Task } from "@/lib/api/task";
+
+import { weekDays } from "@/utils/date";
+import type { Task } from "@/types/task";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faArrowRight, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { updateStatusTask, updateTask } from "@/lib/api/task";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useTask } from "@/lib/api/task";
-import { toast } from "sonner";
 import { TaskDetailModal } from "./TaskDetailModal";
-
+import { useTaskCalendar } from "@/hooks/useTaskCalendar";
 
 type Props = {
   today: Date;
@@ -31,44 +26,18 @@ export default function TaskCalendar({
   onTaskClick,
   tasks,
 }: Props) {
-  const monthDays = useMemo(() => getMonthDays(currentMonth), [currentMonth]);
-  const queryClient = useQueryClient();
-  const { data: session } = useSession();
-  const accessToken = session?.accessToken as string;
-
-  const monthLabel = currentMonth.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-  const [activeDateKey, setActiveDateKey] = useState<string | null>(null);
-
-  const [selectedDayModal, setSelectedDayModal] = useState<string | null>(null);
-  const [selectedTaskDetails, setSelectedTaskDetails] = useState<Task | null>(null);
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number, status: string }) => {
-      return updateStatusTask(id, status, accessToken);
-    },
-    onSuccess: async (updatedTask) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.setQueryData(['tasks', 'detail', String(updatedTask.id), accessToken], updatedTask);
-    }
+  const { state, actions } = useTaskCalendar({
+    currentMonth,
+    today,
+    tasks,
+    onDayClick,
   });
 
-  const handleCompleteTask = (e: React.MouseEvent, task: Task) => {
-    e.stopPropagation();
-    if (task.status === 'Completed') return;
-    updateStatusMutation.mutate({ id: task.id, status: 'Completed' });
-  }
-
-  const handleNotify = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'success') => {
-    toast[type](message);
-  };
   return (
     <div className="bg-white">
       <div className="flex justify-between items-center mb-6">
-        <div >
-          <h3 className="font-bold text-xl">{monthLabel}</h3>
+        <div>
+          <h3 className="font-bold text-xl">{state.monthLabel}</h3>
           <p>Task List</p>
         </div>
 
@@ -109,29 +78,26 @@ export default function TaskCalendar({
       </div>
 
       <div className={"grid grid-cols-7 p-3 font-medium gap-2"}>
-        {monthDays.map((day) => {
-          const dateKey = formatDateKey(day);
-          const tasksForDate = tasks.filter(
-            (task) => task.date === dateKey || task.day === dateKey
-          );
-          const isCurrentMonth = day.getMonth() === currentMonth.getMonth();
-          const isToday = isSameDate(day, today);
-          const isOpened = activeDateKey === dateKey;
-
+        {state.monthDays.map((day) => {
+          const dateKey = actions.formatDateKey(day);
+          const tasksForDate = actions.getTasksForDate(dateKey);
+          const isCurrentMonth = actions.isCurrentMonthDay(day);
+          const isToday = actions.isTodayDay(day);
+          const isOpened = state.activeDateKey === dateKey;
 
           return (
             <div className={["group relative border-none min-h-[120px] rounded-md hover:bg-gray-100 p-2 cursor-pointer",
               !isCurrentMonth ? "bg-gray-200" : ""
             ].join(" ")}
               key={dateKey}
-              onClick={() => { setSelectedDayModal(dateKey); setSelectedTaskDetails(null); onDayClick(day); }}
+              onClick={() => actions.openDayModal(dateKey, day)}
             >
 
               {isOpened && tasksForDate.length > 0 && (
                 <>
                   <div
                     className="fixed inset-0 z-40 bg-transparent"
-                    onClick={(e) => { e.stopPropagation(); setActiveDateKey(null); }}
+                    onClick={(e) => { e.stopPropagation(); actions.setActiveDateKey(null); }}
                   />
                   <div className="absolute top-full left-0 mt-1 z-50 w-max min-w-[150px]">
                     <div className="max-h-60 overflow-y-auto bg-gray-100 text-black text-xs rounded-md shadow-xl border border-gray-700 cursor-default">
@@ -145,14 +111,13 @@ export default function TaskCalendar({
                           </thead>
                           <tbody className=" divide-gray-100">
                             {tasksForDate.map((task) => (
-                              <tr key={task.id} className="hover:bg-gray-200 transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); setActiveDateKey(null); setSelectedDayModal(dateKey); setSelectedTaskDetails(task); }}>
+                              <tr key={task.id} className="hover:bg-gray-200 transition-colors cursor-pointer" onClick={(e) => { e.stopPropagation(); actions.setActiveDateKey(null); actions.openDayModal(dateKey, day); actions.setSelectedTaskDetails(task); }}>
                                 <td className={task.status === "Completed" ? "py-1.5 px-2 max-w-[150px] truncate line-through" : "py-1.5 px-2 max-w-[150px] truncate"}
                                   title={task.title}>
                                   {task.title}
                                 </td>
                                 <td><FontAwesomeIcon icon={faCheck} color={task.status === "Completed" ? '#10b981' : '#d1d5db'}
-                                  onClick={(e) => { handleCompleteTask(e, task); handleNotify("Completed", "success") }}
-
+                                  onClick={(e) => actions.handleCompleteTask(e, task)}
                                 /></td>
                               </tr>
                             ))}
@@ -187,10 +152,10 @@ export default function TaskCalendar({
                 {tasksForDate.slice(0, 2).map((task) => (
                   <div key={task.id}
                     className={task.status === "Completed" ? "flex justify-between bg-gray-100 mt-1 rounded-md hover:bg-gray-200 cursor-pointer line-through" : "flex justify-between bg-gray-100 mt-1 rounded-md hover:bg-gray-200 cursor-pointer"}
-                    onClick={(e) => { e.stopPropagation(); setSelectedDayModal(dateKey); setSelectedTaskDetails(task); }}
+                    onClick={(e) => { e.stopPropagation(); actions.openDayModal(dateKey, day); actions.setSelectedTaskDetails(task); }}
                   >
                     <p className="text-sm text-gray-500">{task.title}</p>
-                    <FontAwesomeIcon icon={faCheck} color={task.status === "Completed" ? '#10b981' : '#d1d5db'} onClick={(e) => { handleCompleteTask(e, task), handleNotify("Completed", "success") }} />
+                    <FontAwesomeIcon icon={faCheck} color={task.status === "Completed" ? '#10b981' : '#d1d5db'} onClick={(e) => actions.handleCompleteTask(e, task)} />
 
                   </div>
                 ))}
@@ -208,25 +173,25 @@ export default function TaskCalendar({
         })}
       </div>
 
-      {selectedDayModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={() => { setSelectedDayModal(null); setSelectedTaskDetails(null); }}>
-          {!selectedTaskDetails ? (
+      {state.selectedDayModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={actions.closeDayModal}>
+          {!state.selectedTaskDetails ? (
             <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
               <button
                 type="button"
-                onClick={() => { setSelectedDayModal(null); setSelectedTaskDetails(null); }}
+                onClick={actions.closeDayModal}
                 className="absolute top-4 right-5 text-gray-400 hover:text-gray-800"
               >
                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
               </button>
-              <h3 className="text-xl font-bold text-gray-900 mb-6 border-b pb-2">Tasks - {selectedDayModal}</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-6 border-b pb-2">Tasks - {state.selectedDayModal}</h3>
 
               <div className="overflow-y-auto space-y-3 pr-2 flex-1">
                 {(() => {
-                  const tasksForSelectedDay = tasks.filter(t => t.date === selectedDayModal || t.day === selectedDayModal);
+                  const tasksForSelectedDay = actions.getTasksForDate(state.selectedDayModal!);
                   return tasksForSelectedDay.length > 0 ? tasksForSelectedDay.map(task => (
                     <div key={task.id}
-                      onClick={() => setSelectedTaskDetails(task)}
+                      onClick={() => actions.setSelectedTaskDetails(task)}
                       className="p-3 border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer flex justify-between items-center transition shadow-sm"
                     >
                       <div className="flex-1 min-w-0 mr-4">
@@ -239,11 +204,7 @@ export default function TaskCalendar({
                         icon={faCheck}
                         color={task.status === "Completed" ? '#10b981' : '#d1d5db'}
                         className="text-lg hover:scale-110 transition cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCompleteTask(e, task);
-                          handleNotify("Completed", "success");
-                        }}
+                        onClick={(e) => actions.handleCompleteTask(e, task)}
                       />
                     </div>
                   )) : (
@@ -257,14 +218,14 @@ export default function TaskCalendar({
           ) : (
             <div onClick={e => e.stopPropagation()} className="w-full max-w-2xl relative">
               <button
-                onClick={() => setSelectedTaskDetails(null)}
+                onClick={() => actions.setSelectedTaskDetails(null)}
                 className="absolute -top-10 left-0 text-white hover:text-gray-200 transition flex items-center gap-2 mb-2 z-10"
               >
                 <FontAwesomeIcon icon={faArrowLeft} /> Back to list
               </button>
               <TaskDetailModal
-                task={selectedTaskDetails}
-                onClose={() => { setSelectedDayModal(null); setSelectedTaskDetails(null); }}
+                task={state.selectedTaskDetails}
+                onClose={actions.closeDayModal}
               />
             </div>
           )}

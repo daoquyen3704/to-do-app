@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTasks } from "@/lib/api/task";
-import type { Task } from "@/lib/api/task";
+import { useTasks } from "@/hooks/queries/useTasks";
+import type { Task } from "@/types/task";
 import TaskCalendar from "@/components/TaskCalendar";
 import { useRouter } from "next/navigation";
-import { formatDateKey } from "@/lib/utils/date";
 
 export default function Home() {
   const router = useRouter();

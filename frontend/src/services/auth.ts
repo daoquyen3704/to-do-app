@@ -1,13 +1,5 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
-export type RegisterPayload = {
-  email: string;
-  password: string;
-  re_password: string;
-  username?: string;
-  first_name?: string;
-  last_name?: string;
-};
+import { RegisterPayload } from "@/types/auth";
 
 export async function registerApi(payload: RegisterPayload): Promise<void> {
   const res = await fetch(`${BASE_URL}/auth/users/`, {
@@ -25,25 +17,18 @@ export async function registerApi(payload: RegisterPayload): Promise<void> {
   }
 }
 
-
 export async function authFetch(
-  url: string,
-  accessToken: string,
+  path: string,
+  token: string,
   options: RequestInit = {}
-): Promise<Response> {
-  const defaultHeaders: HeadersInit = {
-    Authorization: `JWT ${accessToken}`,
-  };
-
-  if (!(options.body instanceof FormData)) {
-    defaultHeaders['Content-Type'] = 'application/json';
-  }
-
-  const headers = {
-    ...defaultHeaders,
-    ...(options.headers ?? {}),
-  };
-
-  const res = await fetch(`${BASE_URL}${url}`, { ...options, headers });
-  return res;
+) {
+  const isFormData = options.body instanceof FormData;
+  return fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `JWT ${token}`,
+      ...(!isFormData ? { "Content-Type": "application/json" } : {}),
+      ...(options.headers || {}),
+    },
+  });
 }

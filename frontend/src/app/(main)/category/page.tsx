@@ -1,81 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { authFetch } from '@/lib/api/auth';
-import { toast } from "sonner";
-import { deleteCategory, useCategories } from '@/lib/api/category';
+import { useCategories } from '@/hooks/queries/useCategories';
 import { Trash, Info } from 'lucide-react';
-import { deleteTask } from '@/lib/api/task';
-import { useRouter } from 'next/navigation';
+import { notify } from '@/utils/notify';
+import { useCategoryMutations } from '@/hooks/mutations/useCategoryMutation';
 
 export default function Category() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const queryClient = useQueryClient();
     const { data: session } = useSession();
-    const {data: categories, isLoading, isError} = useCategories();
     const accessToken = session?.accessToken as string;
-    const router = useRouter();
 
-    const handleNotify = (message: string, type: 'success' | 'error' = 'success') => {
-        toast[type](message);
-    };
-
-    const mutation = useMutation({
-        mutationFn: async (newCategory: { name: string, color_code: string }) => {
-            const token = session?.accessToken;
-            if (!token) throw new Error("You must be logged in");
-            const res = await authFetch('/categories/', token, {
-                method: "POST",
-                body: JSON.stringify(newCategory),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.detail || 'Error adding category');
-            }
-            return res.json();
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['categories'] });
-            setIsModalOpen(false); 
-            handleNotify("Category created successfully", "success");
-        },
-        onError: (error: any) => {
-            handleNotify(error.message, "error");
-        }
-    });
-
-    const deleteCategoryMutation = useMutation({
-        mutationFn: async (id: number) => {
-            return deleteCategory(id, accessToken);
-        },
-        onSuccess: (deleteId) => {
-            queryClient.invalidateQueries({ queryKey: ['categories'] });
-            queryClient.removeQueries({ queryKey: ['categories', deleteId] });
-            handleNotify("Category deleted successfully", "success");
-            router.push("/category");
-            }
-    })
+    const { data: categories, isLoading, isError } = useCategories();
+    const {addMutation, deleteMutation} = useCategoryMutations(accessToken);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        
         const payload = {
             name: formData.get('name') as string,
             color_code: formData.get('color_code') as string,
         };
-
-        if (!payload.name) return handleNotify("Please enter a category name", "error");
-        
-        mutation.mutate(payload);
+        if (!payload.name) return notify("Please enter a category name", "error");
+        addMutation.mutate(payload);
+        setIsModalOpen(false);
     };
 
     const handleDelete = (id: number, name: string) => {
         if(window.confirm(`Are you sure you want to delete the category "${name}"?`)){
-            deleteCategoryMutation.mutate(id);
+            deleteMutation.mutate(id);
         }
     }
 
@@ -152,10 +106,10 @@ export default function Category() {
                                 </button>
                                 <button 
                                     type="submit"
-                                    disabled={mutation.isPending}
+                                    disabled={addMutation.isPending}
                                     className="rounded-xl bg-black px-8 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 disabled:bg-gray-400 transition"
                                 >
-                                    {mutation.isPending ? "Saving..." : "Save"}
+                                    {addMutation.isPending ? "Saving..." : "Save"}
                                 </button>
                             </div>
                         </form>
