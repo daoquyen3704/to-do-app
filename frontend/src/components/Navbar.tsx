@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import React from "react";
+import { Search, X } from "lucide-react";
 import ImportTask from "./ImportTask";
 import { useNavbar } from "@/hooks/useNavbar";
 
@@ -10,8 +11,33 @@ export default function Navbar() {
 
     return (
         <>
-            <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-8">
-                <h2 className="text-xl font-bold">To Do App</h2>
+            <header className="flex h-16 items-center gap-6 border-b border-gray-200 bg-white px-8">
+                <h2 className="shrink-0 text-xl font-bold">To Do App</h2>
+
+                {state.showTaskSearch && (
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                            <Search size={16} />
+                            <input
+                                type="text"
+                                value={state.searchTerm}
+                                onChange={actions.handleSearchChange}
+                                placeholder="Search tasks by title"
+                                className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
+                            />
+                            {state.searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={actions.handleClearSearch}
+                                    className="text-gray-400 transition hover:text-gray-600"
+                                    aria-label="Clear search"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {state.isModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center">
@@ -148,7 +174,7 @@ export default function Navbar() {
                 {state.isImportTaskOpen && (
                     <ImportTask onClose={() => actions.setImportTaskOpen(false)} />
                 )}
-                <div className="flex items-center space-x-4">
+                <div className="ml-auto flex items-center space-x-4">
                     <button
                         className="rounded-lg bg-mist-600 px-4 py-2 text-sm font-medium text-white hover:bg-mist-800"
                         onClick={actions.handleExport}

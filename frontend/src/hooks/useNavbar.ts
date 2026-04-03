@@ -1,6 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { clearSearchInput, setSearchInput } from "@/slices/filterSlice";
+import { useAppDispatch, useAppSelector } from "@/utils/redux";
 import { notify } from "@/utils/notify";
 import { createTask, exportTasksTemplate } from "@/services/task";
 
@@ -12,6 +15,10 @@ export function useNavbar() {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const queryClient = useQueryClient();
+    const pathname = usePathname();
+    const dispatch = useAppDispatch();
+    const searchTerm = useAppSelector((state) => state.filters.searchTerm);
+    const showTaskSearch = pathname === "/";
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
@@ -108,6 +115,14 @@ export function useNavbar() {
         signOut({ callbackUrl: '/login' });
     };
 
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setSearchInput(e.target.value));
+    };
+
+    const handleClearSearch = () => {
+        dispatch(clearSearchInput());
+    };
+
     return {
         state: {
             session,
@@ -115,6 +130,8 @@ export function useNavbar() {
             isImportTaskOpen,
             isAllDay,
             dropdownOpen,
+            searchTerm,
+            showTaskSearch,
             initials,
             dropdownRef,
             getTodayDate
@@ -126,7 +143,9 @@ export function useNavbar() {
             setDropdownOpen,
             handleSubmit,
             handleExport,
-            handleSignOut
+            handleSignOut,
+            handleSearchChange,
+            handleClearSearch
         }
     };
 }
