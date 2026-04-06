@@ -2,7 +2,6 @@
 
 import { useDeferredValue, useMemo, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
-import { useSelector } from "react-redux";
 import { useTasks } from "@/hooks/queries/useTasks";
 import type { Task } from "@/types/task";
 import TaskCalendar from "@/components/TaskCalendar";

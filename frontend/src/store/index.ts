@@ -9,5 +9,5 @@ export const store = configureStore({
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
-
+export const selectFilters = (state: RootState) => state.filters;
+export const selectSearchInput = (state: RootState) => state.filters.searchInput;
