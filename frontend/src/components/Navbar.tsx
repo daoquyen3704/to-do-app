@@ -1,7 +1,6 @@
 'use client';
 
 import Link from "next/link";
-import React from "react";
 import { Search, X } from "lucide-react";
 import ImportTask from "./ImportTask";
 import { useNavbar } from "@/hooks/useNavbar";

@@ -2,10 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { clearSearchInput, setSearchInput } from "@/slices/filterSlice";
-import { useAppDispatch, useAppSelector } from "@/utils/redux";
+import { clearSearchInput, setSearchInput } from "@/store/config/configSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { notify } from "@/utils/notify";
 import { createTask, exportTasksTemplate } from "@/services/task";
+import { selectFilters, selectSearchInput } from "@/store/config/configSelector";
 
 export function useNavbar() {
     const { data: session } = useSession();
@@ -17,7 +18,7 @@ export function useNavbar() {
     const queryClient = useQueryClient();
     const pathname = usePathname();
     const dispatch = useAppDispatch();
-    const searchTerm = useAppSelector((state) => state.filters.searchTerm);
+    const searchTerm = useAppSelector(selectSearchInput);
     const showTaskSearch = pathname === "/";
 
     useEffect(() => {

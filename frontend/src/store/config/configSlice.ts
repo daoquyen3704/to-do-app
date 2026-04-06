@@ -1,11 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 type FilterState = {
-  searchTerm: string;
+  searchInput: string;
 };
 
 const initialState: FilterState = {
-  searchTerm: "",
+  searchInput: "",
 };
 
 const filterSlice = createSlice({
@@ -13,10 +13,10 @@ const filterSlice = createSlice({
   initialState,
   reducers: {
     setSearchInput(state, action: PayloadAction<string>) {
-      state.searchTerm = action.payload;
+      state.searchInput = action.payload;
     },
     clearSearchInput(state) {
-      state.searchTerm = "";
+      state.searchInput = "";
     },
   },
 });

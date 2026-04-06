@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
-import { useAppSelector } from "@/utils/redux";
+import { useAppSelector } from "@/store/hooks";
 import { useSelector } from "react-redux";
 import { useTasks } from "@/hooks/queries/useTasks";
 import type { Task } from "@/types/task";
@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
   
-  const searchTerm = useAppSelector((state) => state.filters.searchTerm);
+  const searchTerm = useAppSelector((state) => state.filters.searchInput);
   const searchInput = useDeferredValue(searchTerm);
 
   const today = useMemo(() => new Date(), []);
