@@ -1,4 +1,4 @@
-import { authFetch } from "@/services/auth";
+import { authFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { UpdateProfilePayload } from "@/types/auth";
 

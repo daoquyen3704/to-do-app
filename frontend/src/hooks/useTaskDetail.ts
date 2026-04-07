@@ -8,16 +8,14 @@ export function useTaskDetail(task: Task, onClose: () => void) {
     const queryClient = useQueryClient();
     const { data: session } = useSession();
     const accessToken = session?.accessToken as string;
+    const tasksQueryKey = ["tasks", accessToken];
+
     const updateTaskMutation = useMutation({
         mutationFn: async (data: FormData) => {
             return updateTask(task.id, data, accessToken);   
         },
-        onSuccess: (updatedTask) => {
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
-            queryClient.setQueryData(
-                ["tasks", "detail", String(updatedTask.id), accessToken],
-                updatedTask
-            );
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: tasksQueryKey});
             notify("Task updated successfully", "success");
             onClose();
         },
@@ -30,8 +28,8 @@ export function useTaskDetail(task: Task, onClose: () => void) {
         mutationFn: async () => {
             return deleteTask(task.id, accessToken);
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: tasksQueryKey});
             notify("Task deleted successfully", "success");
             onClose();
         },

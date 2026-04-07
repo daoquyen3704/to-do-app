@@ -1,4 +1,4 @@
-import { authFetch } from './auth';
+import { authFetch } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 

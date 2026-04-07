@@ -1,4 +1,4 @@
-import { authFetch } from './auth';
+import { authFetch } from '@/lib/api';
 import { Category } from '@/types/category';
 
 export const createCategory = async (

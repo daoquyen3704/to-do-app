@@ -1,13 +1,11 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-
-export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import { apiFetch } from '@/lib/api';
 
 async function refreshAccessToken(refreshToken: string) {
   try {
-    const res = await fetch(`${BASE_URL}/auth/jwt/refresh/`, {
+    const res = await apiFetch('/auth/jwt/refresh/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh: refreshToken }),
     });
 
@@ -36,9 +34,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.username || !credentials?.password) return null;
 
         try {
-          const res = await fetch(`${BASE_URL}/auth/jwt/create/`, {
+          const res = await apiFetch('/auth/jwt/create/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               username: credentials.username,
               password: credentials.password,

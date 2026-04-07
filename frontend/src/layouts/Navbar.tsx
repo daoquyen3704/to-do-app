@@ -15,7 +15,7 @@ export default function Navbar() {
     const createTask = useCreateTask();
     const toolbar = useTaskToolbar();
     const pathname = usePathname();
-    const showTaskSearch = pathname === "/";
+    const showTaskSearch = (pathname === "/");
 
     return (
         <>

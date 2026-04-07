@@ -17,6 +17,7 @@ export function useTaskCalendar({ currentMonth, today, tasks, onDayClick }: UseT
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const accessToken = session?.accessToken as string;
+  const tasksQueryKey = ['tasks', accessToken];
 
   const monthDays = useMemo(() => getMonthDays(currentMonth), [currentMonth]);
   
@@ -33,9 +34,8 @@ export function useTaskCalendar({ currentMonth, today, tasks, onDayClick }: UseT
     mutationFn: async ({ id, status }: { id: number, status: TaskStatus }) => {
       return updateStatusTask(id, status, accessToken);
     },
-    onSuccess: async (updatedTask) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.setQueryData(['tasks', 'detail', String(updatedTask.id), accessToken], updatedTask);
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: tasksQueryKey });
     }
   });
 
