@@ -41,7 +41,6 @@ export default function Home() {
       );
     });
   }, [searchInput, tasks]);
-
   return (
     <section className="overflow-y-auto p-8 flex-1 bg-white">
       <div className="mx-auto max-w-5xl">
@@ -69,9 +68,6 @@ export default function Home() {
             selectedDate={selectedDate}
             onDayClick={(date: Date) => {
               setSelectedDate(date);
-            }}
-            onTaskClick={(task) => {
-              router.push(`/tasks/${task.id}`);
             }}
             tasks={filteredTasks}
           />

@@ -46,3 +46,8 @@ export const formatTimeForInput = (timeStr?: string) => {
         return timeStr;
     }
 };
+
+export const buildTaskDateTime = (day: string, timeStr: string) => {
+    const normalizedTime = formatTimeForInput(timeStr) || "00:00";
+    return `${day}T${normalizedTime}:00`;
+};

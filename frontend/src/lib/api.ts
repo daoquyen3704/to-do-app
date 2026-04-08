@@ -1,27 +1,19 @@
+import axios from 'axios';
+
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function apiFetch(path: string, options: RequestInit = {}) {
-  const isFormData = options.body instanceof FormData;
+export const api = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-  return fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      ...(!isFormData ? { "Content-Type": "application/json" } : {}),
-      ...(options.headers || {}),
-    },
-  });
-}
-
-export async function authFetch(
-  path: string,
-  token: string,
-  options: RequestInit = {}
-) {
-  return apiFetch(path, {
-    ...options,
+export const authApi = (token: string) => {
+  return axios.create({
+    baseURL: BASE_URL,
     headers: {
       Authorization: `JWT ${token}`,
-      ...(options.headers || {}),
     },
   });
-}
+};

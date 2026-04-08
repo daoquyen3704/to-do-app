@@ -2,15 +2,7 @@ import { useAccountMenu } from "@/hooks/useAccountMenu";
 import Link from "next/link";
 
 export default function AccountMenu() {
-    const {
-        session,
-        dropdownOpen,
-        dropdownRef,
-        initials,
-        handleToggleDropdown,
-        handleCloseDropdown,
-        handleSignOut,
-    } = useAccountMenu();
+    const { session, dropdownOpen, dropdownRef,initials,handleToggleDropdown, handleCloseDropdown, handleSignOut, } = useAccountMenu();
 
     return (
         <div className="relative" ref={dropdownRef}>

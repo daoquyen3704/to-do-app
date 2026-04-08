@@ -1,23 +1,44 @@
 'use client';
-import { useState, useEffect } from "react";
-import { Task } from "@/types/task";
-import { useTaskDetail } from "@/hooks/useTaskDetail";
-import { formatTimeForInput } from "@/utils/date";
+import { useState } from "react";
+import { Task, TaskPriority, TaskStatus } from "@/types/task";
+import { UpdateTaskPayload, useTaskDetail } from "@/hooks/mutations/useTaskDetailActions";
+import { buildTaskDateTime, formatTimeForInput } from "@/utils/date";
+import { useCategories } from "@/hooks/queries/useCategories";
 
 export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => void; }) {
-    const isAllDayValue = task.is_all_day === true;
-    const [isAllDay, setIsAllDay] = useState(isAllDayValue);
+    const [isAllDay, setIsAllDay] = useState(task.is_all_day === true);
 
-    useEffect(() => {
-        setIsAllDay(task.is_all_day === true);
-    }, [task.is_all_day]);
+    const { data: categories = [] } = useCategories();
 
     const { updateTaskMutation, deleteTaskMutation } = useTaskDetail(task, onClose);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget); 
-        updateTaskMutation.mutate(formData);
+        const formData = new FormData(e.currentTarget);
+
+        const getTextField = (name: string) => {
+            const value = formData.get(name);
+            return typeof value === "string" ? value : "";
+        };
+
+        const day = getTextField("day") || task.day || "";
+        const start = getTextField("start_time") || formatTimeForInput(task.start_time);
+        const end = getTextField("end_time") || formatTimeForInput(task.end_time);
+
+        const payload: UpdateTaskPayload = {
+            title: getTextField("title") || task.title,
+            description: getTextField("description"),
+            day,
+            start_time: isAllDay ? `${day}T00:00:00` : buildTaskDateTime(day, start),
+            end_time: isAllDay ? `${day}T23:59:59` : buildTaskDateTime(day, end),
+            priority: (getTextField("priority") || task.priority || "Low") as TaskPriority,
+            status: (getTextField("status") || task.status || "Pending") as TaskStatus,
+            color: getTextField("color") || task.color || "#000000",
+            is_all_day: isAllDay,
+            category_id: getTextField("category_id") ? Number(getTextField("category_id")) : null,
+        };
+
+        updateTaskMutation.mutate(payload);
     };
     return (
         <div className="relative w-full max-w-2xl rounded-2xl bg-white p-8 shadow-2xl">
@@ -27,7 +48,7 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                     <label className="block text-sm font-medium text-gray-700">Title</label>
                     <input
                         type="text"
-                        defaultValue={task.title}
+                        defaultValue={task.title || ""}
                         className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 focus:border-indigo-500 focus:ring-indigo-500"
                         placeholder="Add a title"
                         name="title"
@@ -40,7 +61,7 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                         rows={3}
                         className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 focus:border-indigo-500 focus:ring-indigo-500"
                         placeholder="Add a description"
-                        defaultValue={task.description}
+                        defaultValue={task.description || ""}
                         name="description"
                     />
                 </div>
@@ -64,7 +85,7 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                         <input
                             type="date"
                             name="day"
-                            defaultValue={task.day}
+                            defaultValue={task.day || task.date || ""}
                             className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                         />
                     </div>
@@ -75,18 +96,20 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                                 <label className="block text-sm font-medium text-gray-700">Start</label>
                                 <input
                                     type="time"
-                                    name="start_time"
                                     defaultValue={formatTimeForInput(task.start_time)}
                                     className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm"
-                                />
+                                    name="start_time"
+                                    step={60}
+                                />  
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">End</label>
                                 <input
                                     type="time"
-                                    name="end_time"
                                     defaultValue={formatTimeForInput(task.end_time)}
                                     className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm"
+                                    name="end_time"
+                                    step={60}
                                 />
                             </div>
                         </>
@@ -94,13 +117,13 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
 
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Priority</label>
                         <select
                             className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:ring-indigo-500"
                             name="priority"
-                            defaultValue={task.priority}
+                            defaultValue={task.priority || "Low"}
                         >
                             <option value="Low">Low</option>
                             <option value="Medium">Medium</option>
@@ -112,7 +135,7 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                         <select
                             className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:ring-indigo-500"
                             name="status"
-                            defaultValue={task.status}
+                            defaultValue={task.status || "Pending"}
                         >
                             <option value="Pending">Pending</option>
                             <option value="In Progress">In Progress</option>
@@ -120,11 +143,27 @@ export function TaskDetailModal({ task, onClose }: { task: Task; onClose: () => 
                         </select>
                     </div>
                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Category</label>
+                        <select
+                            className="mt-1 w-full rounded-lg border border-gray-200 p-2.5 text-sm focus:ring-indigo-500"
+                            name="category_id"
+                            defaultValue={task.category_id ?? task.category?.id ?? ""}
+                            >
+                            <option value="">None</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                {category.name}
+                                </option>
+                            ))}
+                        </select>
+
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium text-gray-700">Color</label>
                         <input
                             type="color"
                             name="color"
-                            defaultValue={task.color}
+                            defaultValue={task.color || "#000000"}
                             className="mt-1 h-[42px] w-full cursor-pointer rounded-lg border border-gray-200 p-1"
                         />
                     </div>

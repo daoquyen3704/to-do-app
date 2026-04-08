@@ -7,30 +7,31 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
         fields = ("id", "name", "color_code")
 
-class TaskSerializer(serializers.ModelSerializer):
-    category = CategorySerializer
 
+class TaskMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         read_only_fields = ['user']
-        fields = ("id", "user", "description", "category", "title", "day", "status", "priority", "color")
-
+        fields = ("id", "title", "day", "status")
 class TaskDetailSerializer(serializers.ModelSerializer):
-    category = CategorySerializer
-
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), 
+        source='category', 
+        write_only=True,
+        allow_null=True,     # Cho phép nhận giá trị null từ Frontend
+        required=False)
     class Meta:
         model = Task
         read_only_fields = ['user']
-        fields = ("id", "description", "category", "title","start_time", "end_time", "day", "status", "priority", "color", "is_all_day")
+        fields = ("id", "description", "category", "category_id", "title", "start_time", "end_time", "day", "status", "priority", "color", "is_all_day")
 
 
-class TaskCreateSerializer(serializers.ModelSerializer):
-    category = CategorySerializer
-
+class TaskDefaultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         read_only_fields = ['user']
-        fields = ("id", "user","description", "start_time", "end_time", "title", "day", "status", "priority", "color")
+        fields = ("id", "start_time", "end_time", "status")
 
 class TaskTagSerializer(serializers.ModelSerializer):
     class Meta:

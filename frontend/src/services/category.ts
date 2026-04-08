@@ -1,44 +1,44 @@
-import { authFetch } from '@/lib/api';
+import { authApi } from '@/lib/api';
 import { Category } from '@/types/category';
 
 export const createCategory = async (
   payload: { name: string; color_code: string },
   token: string
 ) => {
-  const res = await authFetch('/categories/', token, {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.detail || 'Error adding category');
+  try {
+    const res = await authApi(token).post('/categories/', payload);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.detail || 'Error adding category');
   }
-  return res.json();
 };
 
 export async function getCategories(accessToken: string): Promise<Category[]> {
-    const res = await authFetch('/categories/', accessToken);
-    if (!res.ok) throw new Error('Unable to list categories');
-    return res.json();
+    try {
+        const res = await authApi(accessToken).get('/categories/');
+        return res.data;
+    } catch (error) {
+        throw new Error('Unable to list categories');
+    }
 }
 
 export async function getCategoryDetail(accessToken: string, id: number): Promise<Category> {
-    const res = await authFetch(`/categories/${id}/`, accessToken);
-    if (!res.ok) throw new Error('Unable to fetch category details');
-    return res.json();
+    try {
+        const res = await authApi(accessToken).get(`/categories/${id}/`);
+        return res.data;
+    } catch (error) {
+        throw new Error('Unable to fetch category details');
+    }
 }
 
-
 export async function deleteCategory(id: number, accessToken: string){
-  const res = await authFetch(`/categories/${id}/`, accessToken, {
-    method: "DELETE",
-  });
-  if(!res.ok){
+  try {
+    const res = await authApi(accessToken).delete(`/categories/${id}/`);
+    if (res.status === 204 || res.headers['content-length'] === "0") {
+      return null;
+    }
+    return res.data;
+  } catch (error) {
     throw new Error("Fail to delete category");
   }
-  if (res.status === 204 || res.headers.get("content-length") === "0") {
-    return null; 
-  }
-  return res.json();
 }

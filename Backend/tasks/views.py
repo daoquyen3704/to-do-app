@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Category, Task
-from .serializers import CategorySerializer, TaskSerializer, TaskCreateSerializer
+from .serializers import CategorySerializer, TaskDetailSerializer, TaskMinimalSerializer, TaskDefaultSerializer
 from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
@@ -13,9 +13,16 @@ from .resources import TaskResource
 
 class TaskViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
-        if self.request.method == "POST":
-            return TaskCreateSerializer
-        return TaskSerializer
+        if self.action == 'list':
+            return TaskMinimalSerializer 
+        if self.action == 'retrieve':
+            return TaskDetailSerializer
+        if self.request.method in ["POST", "PUT", "PATCH"]:
+            return TaskDetailSerializer
+        if self.request.method == "DELETE":
+            return TaskDefaultSerializer
+
+        return TaskDefaultSerializer
     
     def get_queryset(self):
         queryset = Task.objects.filter(user=self.request.user).order_by("priority")

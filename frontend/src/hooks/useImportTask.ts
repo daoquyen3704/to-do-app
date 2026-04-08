@@ -27,7 +27,11 @@ export function useImportTask(onClose: () => void) {
             
             try {
                 return await importTasks(formData, token);
-            } finally {
+            }
+            catch(error) {
+                notify("Error occurred while importing tasks", "error");
+            }
+            finally {
                 setLoading(false);
             }
         }, 

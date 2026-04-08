@@ -13,13 +13,12 @@ export function useCategories() {
     });
 }
 
-export function useCategoryDetail(id: number) {
-    const { data: session } = useSession();
+export function useCategoryDetail(id: number){
+    const {data: session} = useSession();
     const accessToken = session?.accessToken as string | undefined;
 
     return useQuery({
         queryKey: ['categories', id, accessToken],
         queryFn: () => getCategoryDetail(accessToken!, id),
-        enabled: !!accessToken && !!id,
-    });
+    })
 }
