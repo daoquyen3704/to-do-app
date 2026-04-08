@@ -36,13 +36,5 @@ export function useAccountMenu() {
         signOut({ callbackUrl: "/login" });
     };
 
-    return {
-        session,
-        dropdownOpen,
-        dropdownRef,
-        initials,
-        handleToggleDropdown,
-        handleCloseDropdown,
-        handleSignOut,
-    };
+    return {session, dropdownOpen, dropdownRef, initials, handleToggleDropdown, handleCloseDropdown, handleSignOut,};
 }

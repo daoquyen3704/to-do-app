@@ -55,14 +55,5 @@ export function useImportTask(onClose: () => void) {
         setFile(selectedFile);
     };
 
-    return {
-        state: {
-            loading,
-            file
-        },
-        actions: {
-            handleUpload,
-            handleFileChange
-        }
-    };
+    return { loading, file, handleUpload, handleFileChange};
 }

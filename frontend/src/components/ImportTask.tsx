@@ -3,7 +3,7 @@
 import { useImportTask } from "@/hooks/useImportTask";
 
 export default function ImportTask({ onClose }: { onClose: () => void }) {
-    const { state, actions } = useImportTask(onClose);
+    const { loading, file, handleUpload, handleFileChange } = useImportTask(onClose);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center">
@@ -24,7 +24,7 @@ export default function ImportTask({ onClose }: { onClose: () => void }) {
                         accept=".csv, .xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                         className=" block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibol file:bg-blue-50 
                                    hover:file:bg-blue-100 cursor-pointer"
-                        onChange={actions.handleFileChange}
+                        onChange={handleFileChange}
                     />
                 </div>
 
@@ -38,11 +38,11 @@ export default function ImportTask({ onClose }: { onClose: () => void }) {
                     </button>
                     <button
                         type="button"
-                        onClick={actions.handleUpload}
+                        onClick={handleUpload}
                         className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white  transition"
-                        disabled={state.loading}
+                        disabled={loading}
                     >
-                        {state.loading ? "Loading..." : "Import"}
+                        {loading ? "Loading..." : "Import"}
                     </button>
                 </div>
             </div>
