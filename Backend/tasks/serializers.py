@@ -19,7 +19,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(), 
         source='category', 
         write_only=True,
-        allow_null=True,     # Cho phép nhận giá trị null từ Frontend
+        allow_null=True,
         required=False)
     class Meta:
         model = Task
